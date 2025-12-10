@@ -2,83 +2,289 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Particle Vibes</title>
+  <title>Special Card</title>
   <style>
-    body, html {
-      margin: 0;
+    :root {
+      --bg: #0b1021;
+      --panel: #131a33;
+      --accent: #6ee7ff;
+      --accent-2: #c084fc;
+    }
+    * { box-sizing: border-box; }
+    body, html { margin: 0; padding: 0; background: var(--bg); color: #e6edf7; }
+    body {
+      min-height: 100vh;
+      font-family: "Inter","SF Pro",-apple-system,sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       padding: 0;
       overflow: hidden;
-      background: #000;
     }
-    canvas {
+    .page {
+      width: 100%;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+      position: relative;
+      z-index: 1;
+      padding: 24px;
+    }
+    /* Canvas acts as animated particle background */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
       display: block;
+      pointer-events: none;
     }
+    .tree-section {
+      width: min(1200px, 100%);
+      height: min(95vh, 820px);
+      background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06), transparent 45%),
+                  rgba(10, 14, 28, 0.82);
+      border: 1px solid rgba(214, 176, 94, 0.25);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.35);
+      display: grid;
+      place-items: center;
+    }
+    .tree-wrap {
+      position: relative;
+      width: min(580px, 75vw);
+      height: min(760px, 90vh);
+      display: grid;
+      place-items: center;
+    }
+    @media (max-width: 720px) {
+      .tree-wrap { width: 82vw; height: 82vh; }
+    }
+    .tree {
+      position: relative;
+      width: 360px;
+      height: 520px;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.35));
+    }
+    .tree .star {
+      position: absolute;
+      top: -12px; left: 50%;
+      width: 32px; height: 32px;
+      background: radial-gradient(circle, #ffd166 0%, #d4a02a 60%, #b8860b 100%);
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      transform: translateX(-50%) rotate(-4deg);
+      box-shadow: 0 0 12px rgba(255,209,102,0.75);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .tree .branch {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(180deg, #164a2b 0%, #0f331d 70%, #0a2414 100%);
+      border-radius: 12px;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    }
+    .branch.layer1 { top: 64px; width: 300px; height: 120px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+    .branch.layer2 { top: 150px; width: 340px; height: 130px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+    .branch.layer3 { top: 250px; width: 380px; height: 140px; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+    .trunk {
+      position: absolute;
+      bottom: -6px; left: 50%;
+      transform: translateX(-50%);
+      width: 62px; height: 72px;
+      background: linear-gradient(180deg, #5a3824 0%, #3f2415 100%);
+      border-radius: 8px;
+    }
+    .ornaments .orn {
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(0,0,0,0.5);
+    }
+    .orn.o1 { top: 120px; left: 48%; background: #d7263d; }
+    .orn.o2 { top: 190px; left: 34%; background: #e9b44c; }
+    .orn.o3 { top: 205px; left: 64%; background: #8ecae6; }
+    .orn.o4 { top: 270px; left: 44%; background: #d7263d; }
+    .orn.o5 { top: 288px; left: 66%; background: #e9b44c; }
+    .orn.o6 { top: 320px; left: 32%; background: #8ecae6; }
+    .garlands .gar {
+      position: absolute;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(214,176,94,0.9), rgba(214,176,94,0.4));
+      opacity: 0.9;
+    }
+    .gar.g1 { top: 170px; left: 24%; width: 220px; transform: rotate(-4deg); }
+    .gar.g2 { top: 240px; left: 18%; width: 260px; transform: rotate(3deg); }
+    .gar.g3 { top: 310px; left: 22%; width: 290px; transform: rotate(-5deg); }
+    .gifts {
+      position: absolute;
+      inset: 0;
+      pointer-events: none; /* allow only buttons to capture */
+    }
+    .gift {
+      position: absolute;
+      width: 92px; height: 80px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.35);
+      overflow: hidden;
+      pointer-events: auto;
+    }
+    .gift:active { transform: translateY(2px) scale(0.99); }
+    .gift .ribbon.vertical {
+      position: absolute;
+      left: 45%;
+      top: 0;
+      width: 12px; height: 100%;
+      background: rgba(255,255,255,0.28);
+    }
+    .gift .ribbon.horizontal {
+      position: absolute;
+      top: 38px; left: 0;
+      height: 12px; width: 100%;
+      background: rgba(255,255,255,0.26);
+    }
+    .gift .tag {
+      position: absolute;
+      bottom: 6px; right: 6px;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-weight: 700;
+      color: #fefefe;
+      font-size: 13px;
+    }
+    .gift.g-red { background: linear-gradient(160deg, #7a1f2a, #a5303c); left: 18%; bottom: 24%; }
+    .gift.g-green { background: linear-gradient(160deg, #1f5c35, #2f7a46); left: 44%; bottom: 14%; }
+    .gift.g-gold { background: linear-gradient(160deg, #a67c24, #c29b38); color: #0b1021; left: 68%; bottom: 22%; }
+    .gift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 26px rgba(0,0,0,0.4);
+    }
+    .snow-note {
+      text-align: center;
+      margin-top: 10px;
+      color: #cdd7f5;
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+    button {
+      cursor: pointer;
+      background: linear-gradient(120deg, var(--accent), var(--accent-2));
+      border: none;
+      border-radius: 10px;
+      color: #0b1021;
+      font-weight: 700;
+      padding: 10px 14px;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    button.secondary {
+      background: transparent;
+      color: #e6edf7;
+      border: 1px solid rgba(110, 231, 255, 0.35);
+    }
+    button:active { transform: scale(0.98); }
+    .quote-modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 20;
+    }
+    /* Ensure hidden state wins over base display */
+    .quote-modal[hidden] { display: none !important; }
+    .quote-box {
+      background: #101831;
+      border: 1px solid rgba(214, 176, 94, 0.35);
+      border-radius: 14px;
+      padding: 20px;
+      width: min(440px, 90vw);
+      box-shadow: 0 18px 38px rgba(0,0,0,0.35);
+    }
+    .quote-box p {
+      margin: 0 0 16px;
+      line-height: 1.6;
+      font-size: 16px;
+      color: #e9f1ff;
+    }
+    .quote-actions { display: flex; gap: 10px; justify-content: flex-end; }
   </style>
 </head>
 <body>
-<canvas id="canvas"></canvas>
+  <canvas id="bg-canvas"></canvas>
 
-<script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+  <div class="page">
+    <section class="tree-section">
+      <div class="tree-wrap">
+        <div class="tree">
+          <button class="star" id="star-btn" aria-label="Say hi"></button>
+          <div class="branch layer1"></div>
+          <div class="branch layer2"></div>
+          <div class="branch layer3"></div>
+          <div class="trunk"></div>
+          <div class="ornaments">
+            <span class="orn o1"></span>
+            <span class="orn o2"></span>
+            <span class="orn o3"></span>
+            <span class="orn o4"></span>
+            <span class="orn o5"></span>
+            <span class="orn o6"></span>
+          </div>
+          <div class="garlands">
+            <span class="gar g1"></span>
+            <span class="gar g2"></span>
+            <span class="gar g3"></span>
+          </div>
+        </div>
+        <div class="gifts">
+          <button class="gift g-red" data-gift="0" aria-label="Open present A">
+            <span class="ribbon vertical"></span>
+            <span class="ribbon horizontal"></span>
+            <span class="tag">A</span>
+          </button>
+          <button class="gift g-green" data-gift="1" aria-label="Open present B">
+            <span class="ribbon vertical"></span>
+            <span class="ribbon horizontal"></span>
+            <span class="tag">B</span>
+          </button>
+          <button class="gift g-gold" data-gift="2" aria-label="Open present C">
+            <span class="ribbon vertical"></span>
+            <span class="ribbon horizontal"></span>
+            <span class="tag">C</span>
+          </button>
+        </div>
+      </div>
+      <div class="snow-note">Tap a present to reveal a good line.</div>
+    </section>
+  </div>
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
+  <div class="quote-modal" id="quote-modal" hidden>
+    <div class="quote-box">
+      <p id="quote-text">...</p>
+      <div class="quote-actions">
+        <button id="quote-next">Next</button>
+        <button class="secondary" id="quote-close">Close</button>
+      </div>
+    </div>
+  </div>
 
-let mouse = { x: null, y: null };
+  <div class="quote-modal" id="santa-modal" hidden>
+    <div class="quote-box">
+      <p id="santa-text">Ho ho ho! Hello there!</p>
+      <div class="quote-actions">
+        <button id="santa-close">Close</button>
+      </div>
+    </div>
+  </div>
 
-window.addEventListener("mousemove", e => {
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-  particles.push(new Particle(mouse.x, mouse.y));
-});
-
-class Particle {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = Math.random() * 5 + 2;
-    this.speedX = Math.random() * 3 - 1.5;
-    this.speedY = Math.random() * 3 - 1.5;
-    this.hue = Math.random() * 360;
-  }
-
-  update() {
-    this.x += this.speedX;
-    this.y += this.speedY;
-    this.size *= 0.96; // shrink
-  }
-
-  draw() {
-    ctx.fillStyle = `hsl(${this.hue}, 100%, 60%)`;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-let particles = [];
-
-function animate() {
-  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  particles = particles.filter(p => p.size > 0.5);
-
-  particles.forEach(p => {
-    p.update();
-    p.draw();
-  });
-
-  requestAnimationFrame(animate);
-}
-
-animate();
-</script>
-
+  <script src="./script.js" defer></script>
 </body>
 </html>
